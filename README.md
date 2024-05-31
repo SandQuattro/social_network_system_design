@@ -4,6 +4,6 @@
 ## [Social Network](https://github.com/SandQuattro/social_network_system_design)
 
 <a href="https://github.com/SandQuattro/golang-sso">
-<img src="https://github.com/SandQuattro/golang-sso/assets/31468131/4454c9ac-4dcd-405a-a3cf-8e92cb2bd170" width="500px"></a>
+<img src="https://github.com/SandQuattro/social_network_system_design/assets/31468131/41ae02f1-dd0a-43bf-9ce2-2d33eed4b91f" width="500px"></a>
 
 ## 
