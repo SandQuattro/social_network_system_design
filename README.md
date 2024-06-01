@@ -3,7 +3,7 @@
 
 ## [Travellers Social Network](https://github.com/SandQuattro/social_network_system_design)
 
-## <img src="https://github.com/SandQuattro/social_network_system_design/assets/31468131/41ae02f1-dd0a-43bf-9ce2-2d33eed4b91f" width="500px" alt="Travel Social Network"></a>
+## <img src="https://www.onetwotrip.com/ru/blog/static/images/travel-now/time-to-travel.jpg" width="500px" alt="Travel Social Network"></a>
 
 ## Бизнес-требования
 - публикация постов из путешествий с фотографиями, небольшим описанием и привязкой к конкретному месту путешествия;
