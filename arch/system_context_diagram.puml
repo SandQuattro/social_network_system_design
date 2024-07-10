@@ -1,0 +1,10 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+Person(user, "Пользователь", "Члены социальной сети")
+System(system, "Путешествия Социальная Сеть", "Web Application для путешественников")
+
+'Взаимодействие пользователя с системой
+Rel(user, system, "Взаимодействие через браузер")
+Rel(user, system, "Взаимодействие через мобильное приложение")
+@enduml

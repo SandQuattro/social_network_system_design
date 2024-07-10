@@ -1,0 +1,88 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(user, "Пользователь", "Члены социальной сети")
+
+System_Boundary(internet, "Internet") {
+    Container(nginx, "Nginx Load Balancer", "NGINX", "Единая точка входа, маршрутизация и балансировка")
+
+    ' Сервисы в пределах системы
+    System_Boundary(coreSystem, "Путешествия Социальная Сеть") {
+        Container(webApp, "Web Application", "React/Next.js", "Пользовательский интерфейс")
+        Container(mobileApp, "Mobile Application", "React Native", "Пользовательский интерфейс")
+        Container(authService, "Auth Service", "Golang App", "Аутентификация и авторизация пользователей")
+        Container(userService, "User Service", "Golang App", "Управление пользовательскими данными")
+        Container(profileService, "Profile Service", "Golang App", "Управление данными профиля")
+        Container(travelService, "Travel Service", "Golang App", "Управление информацией о путешествиях")
+        Container(photoService, "Storage Service", "Golang App", "Управление фотографиями и альбомами")
+        Container(notificationService, "Notification Service", "Golang App", "Система оповещений")
+        ContainerDb(userCache, "Cache", "Redis", "Кэширование пользовательских данных")
+    }
+}
+
+' Сервисы и базы данных с поддержкой multi master репликации
+System_Boundary(dc1, "ЦОД1") {
+    ContainerDb(authDatabase1, "Auth Database - DC1", "PostgreSQL", "База данных аутентификации. Multi-master, фактор 2")
+    ContainerDb(userDatabase1, "User Database - DC1", "PostgreSQL", "База данных пользователя. Multi-master, фактор 2")
+    ContainerDb(profileDatabase1, "Profile Database - DC1", "PostgreSQL", "База данных профиля. Multi-master, фактор 2")
+    ContainerDb(travelDatabase1, "Travel Database - DC1", "PostgreSQL", "База данных путешествий. Multi-master, фактор 2")
+    ContainerDb(photoStorage1, "Photo Storage - DC1", "AWS S3", "Хранилище фотографий")
+}
+
+System_Boundary(dc2, "ЦОД2") {
+    ContainerDb(authDatabase2, "Auth Database - DC2", "PostgreSQL", "База данных аутентификации. Multi-master, фактор 2")
+    ContainerDb(userDatabase2, "User Database - DC2", "PostgreSQL", "База данных пользователя. Multi-master, фактор 2")
+    ContainerDb(profileDatabase2, "Profile Database - DC2", "PostgreSQL", "База данных профиля. Multi-master, фактор 2")
+    ContainerDb(travelDatabase2, "Travel Database - DC2", "PostgreSQL", "База данных путешествий. Multi-master, фактор 2")
+    ContainerDb(photoStorage2, "Photo Storage - DC2", "AWS S3", "Хранилище фотографий")
+}
+
+System_Ext(logging, "Centralized Logging", "ELK Stack", "Централизованное логирование")
+System_Ext(monitoring, "Monitoring and Alerting", "Prometheus/Grafana", "Мониторинг и оповещения")
+System_Ext(tracing, "Tracing System", "Jaeger, OpenTelemetry", "Сбор и анализ трассировок")
+
+' Взаимодействие пользователя с web и mobile приложениями
+Rel(user, nginx, "Использует через браузер", "HTTPS")
+Rel(user, nginx, "Использует через мобильное приложение", "HTTPS")
+Rel(nginx, webApp, "HTTPS")
+Rel(nginx, mobileApp, "HTTPS")
+
+' Взаимодействие с Nginx Load Balancer
+Rel(webApp, authService, "Проверяет токены и получает доступ", "JWT")
+Rel(webApp, userService, "API запросы", "HTTPS")
+Rel(webApp, profileService, "API запросы", "HTTPS")
+Rel(webApp, travelService, "API запросы", "HTTPS")
+Rel(webApp, photoService, "API запросы", "HTTPS")
+
+Rel(mobileApp, authService, "Проверяет токены и получает доступ", "JWT")
+Rel(mobileApp, userService, "API запросы", "HTTPS")
+Rel(mobileApp, profileService, "API запросы", "HTTPS")
+Rel(mobileApp, travelService, "API запросы", "HTTPS")
+Rel(mobileApp, photoService, "API запросы", "HTTPS")
+
+' Взаимодействие сервисов с их базами данных в ЦОД1
+Rel(authService, authDatabase1, "Чтение и запись данных в DC1", "SQL")
+Rel(userService, userDatabase1, "Чтение и запись данных в DC1", "SQL")
+Rel(profileService, profileDatabase1, "Чтение и запись данных в DC1", "SQL")
+Rel(travelService, travelDatabase1, "Чтение и запись данных в DC1", "SQL")
+' Взаимодействие с объектным хранилищем CEPH
+Rel(photoService, photoStorage1, "Работа с media", "AWS S3")
+
+' Взаимодействие сервисов с их базами данных в ЦОД2
+Rel(authService, authDatabase2, "Чтение и запись данных в DC2", "SQL")
+Rel(userService, userDatabase2, "Чтение и запись данных в DC2", "SQL")
+Rel(profileService, profileDatabase2, "Чтение и запись данных в DC2", "SQL")
+Rel(travelService, travelDatabase2, "Чтение и запись данных в DC2", "SQL")
+' Взаимодействие с объектным хранилищем CEPH
+Rel(photoService, photoStorage2, "Работа с media", "AWS S3")
+
+' Взаимодействие сервисов с кэшем
+Rel(authService, userCache, "Кэширование данных", "Storage")
+Rel(userService, userCache, "Кэширование данных", "Storage")
+
+' Взаимодействие с централизованным логированием и мониторингом и с системой трассировки
+Rel(coreSystem, logging, "Отправка логов", "TCP")
+Rel(coreSystem, monitoring, "Отправка метрик и оповещений", "HTTPS")
+Rel(coreSystem, tracing, "Отправка трассировок", "gRPC")
+
+@enduml
