@@ -15,8 +15,6 @@ tags:
     description: Управление комментариями
   - name: Likes
     description: Управление лайками
-  - name: Search
-    description: Поиск постов
   - name: Feed
     description: Лента постов
 paths:
@@ -26,6 +24,24 @@ paths:
       tags: [Feed]
       security:
         - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
       responses:
         '200':
           description: Список постов
@@ -35,6 +51,12 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Post'
+        '400':
+          description: Неверный запрос
+        '401':
+          description: Неавторизован
+        '500':
+          description: Внутренняя ошибка сервера
   /posts:
     post:
       summary: Создание нового поста
@@ -54,7 +76,80 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Post'
+        '400':
+          description: Неверный запрос
+        '401':
+          description: Неавторизован
+        '500':
+          description: Внутренняя ошибка сервера
+  /posts/{postId}:
+    get:
+      summary: Получение поста по ID
+      tags: [Posts]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Детали поста
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+        '400':
+          description: Неверный запрос
+        '401':
+          description: Неавторизован
+        '404':
+          description: Пост не найден
+        '500':
+          description: Внутренняя ошибка сервера
   /posts/{postId}/comments:
+    get:
+      summary: Получение комментариев к посту
+      tags: [Comments]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Список комментариев
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comment'
+        '400':
+          description: Неверный запрос
+        '401':
+          description: Неавторизован
+        '404':
+          description: Пост не найден
+        '500':
+          description: Внутренняя ошибка сервера
     post:
       summary: Добавление комментария к посту
       tags: [Comments]
@@ -65,7 +160,7 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       requestBody:
         required: true
         content:
@@ -79,6 +174,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Comment'
+        '400':
+          description: Неверный запрос
+        '401':
+          description: Неавторизован
+        '500':
+          description: Внутренняя ошибка сервера
   /posts/{postId}/like:
     put:
       summary: Лайк поста
@@ -90,32 +191,17 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
-      responses:
-        '200':
-          description: Лайк успешно поставлен
-  /search:
-    get:
-      summary: Поиск постов
-      tags: [Search]
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: query
-          in: query
-          required: true
-          schema:
             type: string
       responses:
         '200':
-          description: Результаты поиска
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Post'
-  /users/register:
+          description: Лайк успешно поставлен
+        '400':
+          description: Неверный запрос
+        '401':
+          description: Неавторизован
+        '500':
+          description: Внутренняя ошибка сервера
+  /users:
     post:
       summary: Регистрация нового пользователя
       tags: [User]
@@ -132,6 +218,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Неверный запрос
+        '409':
+          description: Конфликт (пользователь с таким email уже существует)
+        '500':
+          description: Внутренняя ошибка сервера
   /users/login:
     post:
       summary: Вход пользователя
@@ -149,6 +241,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Неверный запрос
+        '401':
+          description: Неверный email или пароль
+        '500':
+          description: Внутренняя ошибка сервера
 components:
   securitySchemes:
     bearerAuth:
@@ -160,7 +258,7 @@ components:
       type: object
       properties:
         id:
-          type: integer
+          type: string
         username:
           type: string
         email:
@@ -169,7 +267,7 @@ components:
       type: object
       properties:
         id:
-          type: integer
+          type: string
         user:
           $ref: '#/components/schemas/User'
         content:
@@ -197,7 +295,7 @@ components:
       type: object
       properties:
         id:
-          type: integer
+          type: string
         postId:
           type: string
         user:
