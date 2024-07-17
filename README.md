@@ -86,12 +86,12 @@
 
 ## Оценить количество дисков можно, используя следующую формулу:
 
-Disks_for_capacity = capacity / disk_capacity
-Disks_for_throughput = traffic_per_second / disk_throughput
-Disks_for_iops = iops / disk_iops
-Disks = max(ceil(Disks_for_capacity), ceil(Disks_for_throughput), ceil(Disks_for_iops))
+- Disks_for_capacity = capacity / disk_capacity
+- Disks_for_throughput = traffic_per_second / disk_throughput
+- Disks_for_iops = iops / disk_iops
+- Disks = max(ceil(Disks_for_capacity), ceil(Disks_for_throughput), ceil(Disks_for_iops))
 
-Расчет дисков по подсистемам
+# Расчет дисков по подсистемам
 ## Подсистема постов:
 - capacity: 3.8 TB
 - traffic_per_second: 3.7 MB/s
