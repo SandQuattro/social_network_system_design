@@ -1,5 +1,9 @@
--- enum типа данных для media_type
-CREATE TYPE media_type AS ENUM ('photo', 'image');
+-- Создаем базы данных
+CREATE DATABASE user_db;
+CREATE DATABASE core_db;
+CREATE DATABASE views_db;
+
+\connect user_db;
 
 -- Таблица users
 CREATE TABLE "users"
@@ -20,6 +24,11 @@ CREATE TABLE "user_profiles"
     "location"  varchar(100),
     "photo_url" varchar(255)
 );
+
+\connect core_db;
+
+-- enum типа данных для media_type
+CREATE TYPE media_type AS ENUM ('photo', 'image');
 
 -- Таблица posts
 CREATE TABLE "posts"
@@ -55,8 +64,10 @@ CREATE TABLE "comments"
     "id"         bigserial PRIMARY KEY,
     "post_id"    bigint references "posts" ("id"),
     "user_id"    bigint references "users" ("id"),
+    "reply_id"   bigint references comments (id),
     "content"    text,
     "created_at" timestamp
+
 );
 
 -- Таблица friends
@@ -69,15 +80,30 @@ CREATE TABLE "friends"
     foreign key (friend_id) references "users" ("id")
 );
 
--- Таблица messages
-CREATE TABLE "messages"
+-- таблица сообщений
+CREATE TABLE messages
+ (
+     id          bigserial PRIMARY KEY,
+     sender_id   bigint references users (id),
+     receiver_id bigint references users (id),
+     content     text,
+     created_at  timestamp
+ );
+
+-- таблица статусов прочтения
+CREATE TABLE message_reads
 (
-    "id"          bigserial PRIMARY KEY,
-    "sender_id"   bigint references "users" ("id"),
-    "receiver_id" bigint references "users" ("id"),
-    "content"     text,
-    "created_at"  timestamp
+    id          bigserial PRIMARY KEY,
+    message_id  bigint references messages (id),
+    user_id     bigint references users (id),
+    is_read     boolean default false,
+    read_at     timestamp
 );
+
+CREATE INDEX idx_message_reads_message_id ON message_reads(message_id);
+CREATE INDEX idx_message_reads_user_id ON message_reads(user_id);
+
+\connect views_db;
 
 -- Таблица views
 CREATE TABLE "views"
@@ -88,19 +114,19 @@ CREATE TABLE "views"
     "view_time" timestamp
 );
 
-COMMENT ON COLUMN "user_profiles"."user_id" IS 'Foreign key referencing users.id';
-COMMENT ON COLUMN "posts"."user_id" IS 'Foreign key referencing users.id';
-COMMENT ON COLUMN "posts"."latitude" IS 'geo latitude';
-COMMENT ON COLUMN "posts"."longitude" IS 'geo longitude';
-COMMENT ON COLUMN "media"."post_id" IS 'Foreign key referencing posts.id';
-COMMENT ON COLUMN "media"."media_type" IS 'image, audio, etc.';
-COMMENT ON COLUMN "likes"."user_id" IS 'Foreign key referencing users.id';
-COMMENT ON COLUMN "likes"."post_id" IS 'Foreign key referencing posts.id';
-COMMENT ON COLUMN "comments"."post_id" IS 'Foreign key referencing posts.id';
-COMMENT ON COLUMN "comments"."user_id" IS 'Foreign key referencing users.id';
-COMMENT ON COLUMN "friends"."user_id" IS 'Foreign key referencing users.id';
-COMMENT ON COLUMN "friends"."friend_id" IS 'Foreign key referencing users.id';
-COMMENT ON COLUMN "messages"."sender_id" IS 'Foreign key referencing users.id';
-COMMENT ON COLUMN "messages"."receiver_id" IS 'Foreign key referencing users.id';
-COMMENT ON COLUMN "views"."user_id" IS 'Foreign key referencing users.id';
-COMMENT ON COLUMN "views"."post_id" IS 'Foreign key referencing posts.id';
+COMMENT ON COLUMN user_profiles.user_id IS 'Foreign key referencing users.id';
+COMMENT ON COLUMN posts.user_id IS 'Foreign key referencing user_db.users.id';
+COMMENT ON COLUMN posts.latitude IS 'geo latitude';
+COMMENT ON COLUMN posts.longitude IS 'geo longitude';
+COMMENT ON COLUMN media.post_id IS 'Foreign key referencing posts.id';
+COMMENT ON COLUMN media.media_type IS 'image, audio, etc.';
+COMMENT ON COLUMN likes.user_id IS 'Foreign key referencing user_db.users.id';
+COMMENT ON COLUMN likes.post_id IS 'Foreign key referencing posts.id';
+COMMENT ON COLUMN comments.post_id IS 'Foreign key referencing post_db.posts.id';
+COMMENT ON COLUMN comments.user_id IS 'Foreign key referencing user_db.users.id';
+COMMENT ON COLUMN friends.user_id IS 'Foreign key referencing user_db.users.id';
+COMMENT ON COLUMN friends.friend_id IS 'Foreign key referencing user_db.users.id';
+COMMENT ON COLUMN messages.sender_id IS 'Foreign key referencing user_db.users.id';
+COMMENT ON COLUMN messages.receiver_id IS 'Foreign key referencing user_db.users.id';
+COMMENT ON COLUMN views.user_id IS 'Foreign key referencing user_db.users.id';
+COMMENT ON COLUMN views.post_id IS 'Foreign key referencing post_db.posts.id';
