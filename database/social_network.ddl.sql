@@ -80,16 +80,28 @@ CREATE TABLE "friends"
     foreign key (friend_id) references "users" ("id")
 );
 
--- Таблица messages
-CREATE TABLE "messages"
+-- таблица сообщений
+CREATE TABLE messages
+ (
+     id          bigserial PRIMARY KEY,
+     sender_id   bigint references users (id),
+     receiver_id bigint references users (id),
+     content     text,
+     created_at  timestamp
+ );
+
+-- таблица статусов прочтения
+CREATE TABLE message_reads
 (
-    "id"          bigserial PRIMARY KEY,
-    "sender_id"   bigint references "users" ("id"),
-    "receiver_id" bigint references "users" ("id"),
-    "content"     text,
-    "is_read"     boolean default false,
-    "created_at"  timestamp
+    id          bigserial PRIMARY KEY,
+    message_id  bigint references messages (id),
+    user_id     bigint references users (id),
+    is_read     boolean default false,
+    read_at     timestamp
 );
+
+CREATE INDEX idx_message_reads_message_id ON message_reads(message_id);
+CREATE INDEX idx_message_reads_user_id ON message_reads(user_id);
 
 \connect views_db;
 
